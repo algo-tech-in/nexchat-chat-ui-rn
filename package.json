@@ -1,0 +1,18 @@
+{
+  "name": "@nexchat/chat-ui-rn",
+  "version": "0.0.1",
+  "description": "React Native package to integrate NexChat into your app.",
+  "main": "index.ts",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chat",
+    "realtime",
+    "communication",
+    "websocket"
+  ],
+  "author": "ALGO TECHNOLOGIES PRIVATE LIMITED",
+  "license": "Refer to LICENSE file"
+}
