@@ -222,7 +222,9 @@ const ChannelItem = ({
 
 const styles = StyleSheet.create({
   activityIndicator: { marginTop: 20 },
-  contentContainer: {},
+  contentContainer: {
+    height: "100%",
+  },
   unreadCountText: {
     color: colors.white,
     fontSize: 12,
