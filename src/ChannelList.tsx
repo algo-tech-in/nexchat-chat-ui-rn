@@ -206,7 +206,7 @@ const ChannelItem = ({
             >
               {channel?.lastMessage?.attachments?.[0]
                 ? "📎 Attachment"
-                : channel?.lastMessage?.text ?? "New message"}
+                : channel?.lastMessage?.text ?? "Start a conversation"}
             </Text>
             {unreadCount ? (
               <View style={styles.unreadCountContainer}>
