@@ -161,6 +161,8 @@ const ChannelItem = ({
     if (date.getDate() === today.getDate()) {
       return date.toLocaleTimeString(undefined, {
         timeStyle: "short",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } else if (date.getDate() === today.getDate() - 1) {
       return "Yesterday";
@@ -170,11 +172,8 @@ const ChannelItem = ({
   };
 
   return (
-    <View style={styles.msgWrapper}>
-      <Pressable
-        style={styles.msgButton}
-        onPress={() => onPressChannel?.(channel)}
-      >
+    <View style={styles.container}>
+      <Pressable style={styles.item} onPress={() => onPressChannel?.(channel)}>
         <Userpic
           source={
             displayDetails.imageUrl
@@ -242,12 +241,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  msgWrapper: {
+  container: {
     paddingHorizontal: 20,
     justifyContent: "center",
     paddingVertical: 12,
   },
-  msgButton: { flexDirection: "row", alignItems: "center" },
+  item: { flexDirection: "row", alignItems: "center" },
   profileImage: {
     height: 40,
     width: 40,
