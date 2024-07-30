@@ -9,6 +9,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -17,10 +18,13 @@ import { SendMessageProps } from "./types";
 import { UserTextInput } from "./UserTextInput";
 import { isSameDate } from "./utils";
 import { colors } from "./colors";
+import { Userpic } from "react-native-userpic";
 
 type ChannelMessagesProps = {
   client: NexChat;
   channelId: string;
+  onBackPress?: () => void;
+  showHeader?: boolean;
 };
 
 type MediaHandlerProps = {
@@ -39,6 +43,8 @@ const ItemSeparatorComponent = () => <View style={styles.itemSeparator} />;
 const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   client,
   channelId,
+  onBackPress,
+  showHeader = true,
 }) => {
   const channelRef = useRef<Channel | undefined>(undefined);
   const isLastPageRef = useRef(false);
@@ -48,6 +54,8 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isBlockedByOtherUser, setIsBlockedByOtherUser] = useState(false);
+
+  const displayDetails = channelRef.current?.getDisplayDetails?.();
 
   useEffect(() => {
     setIsLoading(true);
@@ -162,6 +170,28 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
 
   return (
     <View style={styles.container}>
+      {showHeader ? (
+        <View style={styles.headerContainer}>
+          <TouchableOpacity onPress={onBackPress} activeOpacity={0.8}>
+            <Image
+              source={require("./assets/back.png")}
+              style={styles.back}
+              tintColor={colors.black}
+            />
+          </TouchableOpacity>
+          <Userpic
+            size={40}
+            source={
+              displayDetails?.imageUrl
+                ? { uri: displayDetails.imageUrl }
+                : undefined
+            }
+            name={displayDetails?.name}
+            color={colors.darkMint}
+          />
+          <Text style={styles.headerTitle}>{displayDetails?.name}</Text>
+        </View>
+      ) : null}
       <FlatList
         contentContainerStyle={styles.flatListContainer}
         data={messages}
@@ -230,6 +260,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         <Text style={styles.msgTimeText}>
           {new Date(createdAt).toLocaleTimeString(undefined, {
             timeStyle: "short",
+            hour: "2-digit",
+            minute: "2-digit",
           })}
         </Text>
       </View>
@@ -430,5 +462,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lightGray,
     borderWidth: 1,
     borderColor: colors.white,
+  },
+  back: {
+    height: 24,
+    width: 24,
+    marginRight: 4,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    backgroundColor: colors.white,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.lightGray,
+    borderTopWidth: 1,
+    borderTopColor: colors.lightGray,
+  },
+  headerTitle: {
+    color: colors.black,
+    marginLeft: 12,
+    fontWeight: "600",
+    fontSize: 16,
   },
 });
