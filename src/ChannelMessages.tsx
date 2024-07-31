@@ -25,6 +25,7 @@ type ChannelMessagesProps = {
   channelId: string;
   onBackPress?: () => void;
   showHeader?: boolean;
+  onHeaderProfilePress?: () => void;
 };
 
 type MediaHandlerProps = {
@@ -45,49 +46,47 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   channelId,
   onBackPress,
   showHeader = true,
+  onHeaderProfilePress,
 }) => {
-  const channelRef = useRef<Channel | undefined>(undefined);
   const isLastPageRef = useRef(false);
   const isFetchingNextMessagesRef = useRef(false);
 
+  const [channel, setChannel] = useState<Channel | undefined>(undefined);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isBlockedByOtherUser, setIsBlockedByOtherUser] = useState(false);
 
-  const displayDetails = channelRef.current?.getDisplayDetails?.();
+  const displayDetails = channel?.getDisplayDetails?.();
 
   useEffect(() => {
     setIsLoading(true);
     client.getChannelByIdAsync(channelId).then((newChannel: Channel) => {
-      channelRef.current = newChannel;
+      setChannel(newChannel);
       setIsLoading(false);
-      setIsBlocked(channelRef.current.isBlocked);
-      setIsBlockedByOtherUser(channelRef.current.isOtherUserBlocked);
-      channelRef.current.markChannelRead();
+      setIsBlocked(newChannel.isBlocked);
+      setIsBlockedByOtherUser(newChannel.isOtherUserBlocked);
+      newChannel.markChannelRead();
     });
   }, [channelId]);
 
   useEffect(() => {
-    if (!channelRef.current?.channelId) {
+    if (!channel?.channelId) {
       return;
     }
 
-    const removeListener = channelRef.current.on(
-      "message.new",
-      (message: Message) => {
-        channelRef.current?.markChannelRead();
-        setMessages((prevMessages) => [message, ...prevMessages]);
-      }
-    );
+    const removeListener = channel.on("message.new", (message: Message) => {
+      channel?.markChannelRead();
+      setMessages((prevMessages) => [message, ...prevMessages]);
+    });
 
-    const removeUpdateListener = channelRef.current.on("channel.update", () => {
-      setIsBlocked(channelRef.current?.isBlocked ?? false);
-      setIsBlockedByOtherUser(channelRef.current?.isOtherUserBlocked ?? false);
+    const removeUpdateListener = channel.on("channel.update", () => {
+      setIsBlocked(channel?.isBlocked ?? false);
+      setIsBlockedByOtherUser(channel?.isOtherUserBlocked ?? false);
     });
 
     setIsLoading(true);
-    channelRef.current
+    channel
       .getChannelMessagesAsync({
         limit: 20,
       })
@@ -103,7 +102,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
       removeListener();
       removeUpdateListener();
     };
-  }, [channelRef.current?.channelId]);
+  }, [channel?.channelId]);
 
   const onEndReached = () => {
     if (!isLoading && !isLastPageRef.current) {
@@ -112,11 +111,11 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   };
 
   const getMessages = (lastMessageCreatedAt?: string) => {
-    if (!channelRef.current?.channelId || isFetchingNextMessagesRef.current) {
+    if (!channel?.channelId || isFetchingNextMessagesRef.current) {
       return;
     }
     isFetchingNextMessagesRef.current = true;
-    channelRef.current
+    channel
       .getChannelMessagesAsync({
         limit: 20,
         lastCreatedAt: lastMessageCreatedAt,
@@ -139,22 +138,19 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
     return new Promise((resolve, reject) => {
       if (_.isEmpty(attachments) && _.isUndefined(trimmedText)) {
         reject("Message is empty");
-      } else if (channelRef?.current) {
-        channelRef?.current
-          .sendMessageAsync({
-            text: trimmedText,
-            urlPreview: urlPreview,
-            attachments: attachments,
-          })
-          .then((res) => {
-            resolve(res);
-          })
-          .catch((error) => {
-            reject(error);
-          });
-      } else {
-        reject("Channel is not available");
       }
+      channel
+        ?.sendMessageAsync({
+          text: trimmedText,
+          urlPreview: urlPreview,
+          attachments: attachments,
+        })
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((error) => {
+          reject(error);
+        });
     });
   };
 
@@ -179,17 +175,23 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
               tintColor={colors.black}
             />
           </TouchableOpacity>
-          <Userpic
-            size={40}
-            source={
-              displayDetails?.imageUrl
-                ? { uri: displayDetails.imageUrl }
-                : undefined
-            }
-            name={displayDetails?.name}
-            color={colors.darkMint}
-          />
-          <Text style={styles.headerTitle}>{displayDetails?.name}</Text>
+          <TouchableOpacity
+            onPress={onHeaderProfilePress}
+            activeOpacity={0.8}
+            style={{ flexDirection: "row", alignItems: "center" }}
+          >
+            <Userpic
+              size={40}
+              source={
+                displayDetails?.imageUrl
+                  ? { uri: displayDetails.imageUrl }
+                  : undefined
+              }
+              name={displayDetails?.name}
+              color={colors.darkMint}
+            />
+            <Text style={styles.headerTitle}>{displayDetails?.name}</Text>
+          </TouchableOpacity>
         </View>
       ) : null}
       <FlatList
