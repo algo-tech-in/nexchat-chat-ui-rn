@@ -20,7 +20,7 @@
     "react-native-userpic": "^2.0.3"
   },
   "peerDependencies": {
-    "@nexchat/chat-js": "github:algo-tech-in/nexchat-chat-js",
+    "@nexchat/chat-js": "ssh://git@github.com:algo-tech-in/nexchat-chat-js.git",
     "react": ">=18.0.0",
     "react-native": ">=0.70.0",
     "react-native-compressor": ">=1.8.25",
@@ -28,6 +28,7 @@
     "react-native-image-viewing": ">=0.2.2"
   },
   "devDependencies": {
+    "@nexchat/chat-js": "ssh://git@github.com:algo-tech-in/nexchat-chat-js.git",
     "@react-native/eslint-config": "0.74.81",
     "@react-native/typescript-config": "0.74.81",
     "@types/lodash": "^4.17.4",
