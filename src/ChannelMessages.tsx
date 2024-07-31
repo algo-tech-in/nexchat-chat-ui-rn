@@ -26,6 +26,7 @@ type ChannelMessagesProps = {
   onBackPress?: () => void;
   showHeader?: boolean;
   onHeaderProfilePress?: () => void;
+  onMorePress?: () => void;
 };
 
 type MediaHandlerProps = {
@@ -47,6 +48,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   onBackPress,
   showHeader = true,
   onHeaderProfilePress,
+  onMorePress,
 }) => {
   const isLastPageRef = useRef(false);
   const isFetchingNextMessagesRef = useRef(false);
@@ -191,6 +193,13 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
               color={colors.darkMint}
             />
             <Text style={styles.headerTitle}>{displayDetails?.name}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onMorePress} activeOpacity={0.8}>
+            <Image
+              source={require("./assets/more.png")}
+              style={styles.more}
+              tintColor={colors.black}
+            />
           </TouchableOpacity>
         </View>
       ) : null}
@@ -469,6 +478,11 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
     marginRight: 4,
+  },
+  more: {
+    height: 24,
+    width: 24,
+    transform: [{ rotateY: "90deg" }],
   },
   headerContainer: {
     flexDirection: "row",
