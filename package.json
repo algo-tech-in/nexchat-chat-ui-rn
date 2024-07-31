@@ -16,11 +16,11 @@
     "websocket"
   ],
   "dependencies": {
-    "@nexchat/chat-js": "github:algo-tech-in/nexchat-chat-js",
     "lodash": "^4.17.21",
     "react-native-userpic": "^2.0.3"
   },
   "peerDependencies": {
+    "@nexchat/chat-js": "github:algo-tech-in/nexchat-chat-js",
     "react": ">=18.0.0",
     "react-native": ">=0.70.0",
     "react-native-compressor": ">=1.8.25",
