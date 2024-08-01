@@ -3,6 +3,7 @@ import _ from "lodash";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   ImageProps,
@@ -19,6 +20,7 @@ import { UserTextInput } from "./UserTextInput";
 import { isSameDate } from "./utils";
 import { colors } from "./colors";
 import { Userpic } from "react-native-userpic";
+import { MenuView, NativeActionEvent } from "@react-native-menu/menu";
 
 type ChannelMessagesProps = {
   client: NexChat;
@@ -26,7 +28,8 @@ type ChannelMessagesProps = {
   onBackPress?: () => void;
   showHeader?: boolean;
   onHeaderProfilePress?: () => void;
-  onMorePress?: () => void;
+  onBlockPress?: () => void;
+  onUnblockPress?: () => void;
 };
 
 type MediaHandlerProps = {
@@ -48,7 +51,8 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   onBackPress,
   showHeader = true,
   onHeaderProfilePress,
-  onMorePress,
+  onBlockPress: onBlockPressCallback,
+  onUnblockPress: onUnblockPressCallback,
 }) => {
   const isLastPageRef = useRef(false);
   const isFetchingNextMessagesRef = useRef(false);
@@ -62,10 +66,8 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   const displayDetails = channel?.getDisplayDetails?.();
 
   useEffect(() => {
-    setIsLoading(true);
     client.getChannelByIdAsync(channelId).then((newChannel: Channel) => {
       setChannel(newChannel);
-      setIsLoading(false);
       setIsBlocked(newChannel.isBlocked);
       setIsBlockedByOtherUser(newChannel.isOtherUserBlocked);
       newChannel.markChannelRead();
@@ -87,7 +89,6 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
       setIsBlockedByOtherUser(channel?.isOtherUserBlocked ?? false);
     });
 
-    setIsLoading(true);
     channel
       .getChannelMessagesAsync({
         limit: 20,
@@ -156,93 +157,220 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
     });
   };
 
-  if (isLoading) {
-    return (
-      <ActivityIndicator
-        size="large"
-        color={colors.darkMint}
-        style={styles.activityIndicator}
-      />
-    );
-  }
+  const onBlockPress = () => {
+    setIsLoading(true);
+    onBlockPressCallback?.();
+    channel!
+      .blockChannelAsync()
+      .then(() => {
+        setIsBlocked(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const onUnblockPress = () => {
+    setIsLoading(true);
+    onUnblockPressCallback?.();
+    channel!
+      .unBlockChannelAsync()
+      .then(() => {
+        setIsBlocked(false);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const onClearChatPress = () => {};
+
+  const onPressMenuItem = ({ nativeEvent }: NativeActionEvent) => {
+    if (!channel || !displayDetails) {
+      return;
+    }
+    switch (nativeEvent.event) {
+      case "block":
+        Alert.alert(
+          `Are you sure you want to block ${displayDetails.name}?`,
+          "You can no longer send or receive any messages. You can unblock anytime.",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            { text: "Block", onPress: onBlockPress, style: "destructive" },
+          ]
+        );
+        break;
+      case "unblock":
+        Alert.alert(
+          `Are you sure you want to unblock ${displayDetails.name}?`,
+          "You can again send and receive messages.",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            { text: "Unblock", onPress: onUnblockPress },
+          ]
+        );
+        break;
+
+      case "clear":
+        Alert.alert(
+          `Are you sure you want to clear this chat?`,
+          "All messages will be cleared. You can still send and receive new messages.",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+            },
+            { text: "Clear", onPress: onClearChatPress, style: "destructive" },
+          ]
+        );
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <View style={styles.container}>
       {showHeader ? (
         <View style={styles.headerContainer}>
-          <TouchableOpacity onPress={onBackPress} activeOpacity={0.8}>
-            <Image
-              source={require("./assets/back.png")}
-              style={styles.back}
-              tintColor={colors.black}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={onHeaderProfilePress}
-            activeOpacity={0.8}
-            style={{ flexDirection: "row", alignItems: "center" }}
-          >
-            <Userpic
-              size={40}
-              source={
-                displayDetails?.imageUrl
-                  ? { uri: displayDetails.imageUrl }
-                  : undefined
-              }
-              name={displayDetails?.name}
-              color={colors.darkMint}
-            />
-            <Text style={styles.headerTitle}>{displayDetails?.name}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={onMorePress} activeOpacity={0.8}>
-            <Image
-              source={require("./assets/more.png")}
-              style={styles.more}
-              tintColor={colors.black}
-            />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity onPress={onBackPress} activeOpacity={0.8}>
+              <Image
+                source={require("./assets/back.png")}
+                style={styles.back}
+                tintColor={colors.black}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onHeaderProfilePress}
+              activeOpacity={0.8}
+              style={{ flexDirection: "row", alignItems: "center" }}
+            >
+              <Userpic
+                size={40}
+                source={
+                  displayDetails?.imageUrl
+                    ? { uri: displayDetails.imageUrl }
+                    : undefined
+                }
+                name={displayDetails?.name}
+                color={colors.darkMint}
+              />
+              <Text style={styles.headerTitle}>{displayDetails?.name}</Text>
+            </TouchableOpacity>
+          </View>
+          {isBlockedByOtherUser ? null : (
+            <View>
+              <MenuView
+                onPressAction={onPressMenuItem}
+                actions={[
+                  // { id: "clear", title: "Clear Chat" },
+                  isBlocked
+                    ? {
+                        id: "unblock",
+                        title: "Unblock",
+                      }
+                    : {
+                        id: "block",
+                        title: "Block",
+                      },
+                ]}
+              >
+                <Image
+                  source={require("./assets/more.png")}
+                  style={styles.more}
+                  tintColor={colors.black}
+                />
+              </MenuView>
+            </View>
+          )}
         </View>
       ) : null}
-      <FlatList
-        contentContainerStyle={styles.flatListContainer}
-        data={messages}
-        inverted={true}
-        keyExtractor={(item) => item.messageId}
-        ItemSeparatorComponent={ItemSeparatorComponent}
-        renderItem={({ item, index }) => {
-          const isSendedByUser =
-            item.user.externalUserId === client.externalUserId;
-          const showDate = messages?.[index + 1]
-            ? !isSameDate(item.createdAt, messages[index + 1].createdAt)
-            : true;
-          return (
-            <View>
-              {showDate && (
-                <View style={styles.dateContainer}>
-                  <Text style={styles.dateContent}>
-                    {new Date(item.createdAt).toDateString()}
-                  </Text>
-                </View>
-              )}
-              <MessageBubble
-                isSendedByUser={isSendedByUser}
-                text={item.text}
-                createdAt={item.createdAt}
-                attachments={item.attachments}
-              />
-            </View>
-          );
-        }}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
-      />
-      {isBlocked || isBlockedByOtherUser ? (
-        <View style={styles.blockedContainer}>
-          <Text>You can no longer send messages</Text>
-        </View>
-      ) : (
-        <UserTextInput client={client} onPressSend={sendMessageAsync} />
-      )}
+      <View style={{ flex: 1 }}>
+        {isLoading ? (
+          <View
+            style={{
+              position: "absolute",
+              flex: 1,
+              height: "100%",
+              width: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 100,
+              backgroundColor: "rgba(0,0,0,0.5)",
+            }}
+          >
+            <ActivityIndicator
+              size="large"
+              color={colors.darkMint}
+              style={styles.activityIndicator}
+            />
+          </View>
+        ) : null}
+        <FlatList
+          contentContainerStyle={styles.flatListContainer}
+          data={messages}
+          extraData={isLoading}
+          inverted={true}
+          keyExtractor={(item) => item.messageId}
+          ItemSeparatorComponent={ItemSeparatorComponent}
+          renderItem={({ item, index }) => {
+            const isSendedByUser =
+              item.user.externalUserId === client.externalUserId;
+            const showDate = messages?.[index + 1]
+              ? !isSameDate(item.createdAt, messages[index + 1].createdAt)
+              : true;
+            return (
+              <View>
+                {showDate && (
+                  <View style={styles.dateContainer}>
+                    <Text style={styles.dateContent}>
+                      {new Date(item.createdAt).toDateString()}
+                    </Text>
+                  </View>
+                )}
+                <MessageBubble
+                  isSendedByUser={isSendedByUser}
+                  text={item.text}
+                  createdAt={item.createdAt}
+                  attachments={item.attachments}
+                />
+              </View>
+            );
+          }}
+          ListHeaderComponent={() => {
+            if (isLoading || messages.length !== 0) {
+              return null;
+            }
+            return (
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text>No messages yet</Text>
+              </View>
+            );
+          }}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
+        />
+        {isBlocked || isBlockedByOtherUser ? (
+          <View style={styles.blockedContainer}>
+            <Text>You can no longer send messages</Text>
+          </View>
+        ) : (
+          <UserTextInput client={client} onPressSend={sendMessageAsync} />
+        )}
+      </View>
     </View>
   );
 };
@@ -405,7 +533,7 @@ const styles = StyleSheet.create({
   messageBubbleUser: {
     backgroundColor: colors.lightMint,
   },
-  activityIndicator: { flex: 1 },
+  activityIndicator: {},
   msgText: { paddingRight: 16, color: colors.black },
   msgTimeText: {
     alignSelf: "flex-end",
@@ -480,13 +608,13 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   more: {
-    height: 24,
-    width: 24,
-    transform: [{ rotateY: "90deg" }],
+    height: 18,
+    width: 18,
   },
   headerContainer: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     backgroundColor: colors.white,
     paddingVertical: 12,
