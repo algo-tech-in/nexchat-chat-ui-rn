@@ -303,7 +303,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
               alignItems: "center",
               justifyContent: "center",
               zIndex: 100,
-              backgroundColor: "rgba(0,0,0,0.5)",
+              backgroundColor: "rgba(0,0,0,0.4)",
             }}
           >
             <ActivityIndicator
