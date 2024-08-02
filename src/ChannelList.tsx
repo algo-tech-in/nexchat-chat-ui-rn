@@ -7,6 +7,7 @@ import {
   StyleProp,
   StyleSheet,
   Text,
+  TextStyle,
   View,
   ViewStyle,
 } from "react-native";
@@ -23,7 +24,7 @@ export const ChannelList = ({
   client: NexChat;
   onPressChannel?: (channel: Channel) => void;
   flatListStyle?: StyleProp<ViewStyle>;
-  messageTextStyle?: StyleProp<ViewStyle>;
+  messageTextStyle?: StyleProp<TextStyle>;
 }) => {
   const pageNumberRef = useRef(0);
   const isLastPageRef = useRef(false);
@@ -146,7 +147,7 @@ const ChannelItem = ({
 }: {
   channel: Channel;
   onPressChannel?: (channel: Channel) => void;
-  messageTextStyle?: StyleProp<ViewStyle>;
+  messageTextStyle?: StyleProp<TextStyle>;
 }) => {
   const [unreadCount, setUnreadCount] = useState(channel.unreadCount);
 
