@@ -4,9 +4,11 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  StyleProp,
   StyleSheet,
   Text,
   View,
+  ViewStyle,
 } from "react-native";
 import { Userpic } from "react-native-userpic";
 import { Channel, NexChat } from "@nexchat/chat-js";
@@ -15,9 +17,13 @@ import { colors } from "./colors";
 export const ChannelList = ({
   client,
   onPressChannel,
+  flatListStyle,
+  messageTextStyle,
 }: {
   client: NexChat;
   onPressChannel?: (channel: Channel) => void;
+  flatListStyle?: StyleProp<ViewStyle>;
+  messageTextStyle?: StyleProp<ViewStyle>;
 }) => {
   const pageNumberRef = useRef(0);
   const isLastPageRef = useRef(false);
@@ -105,10 +111,16 @@ export const ChannelList = ({
   return (
     <FlatList
       data={channels}
+      showsHorizontalScrollIndicator={false}
+      showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.channelId}
-      contentContainerStyle={styles.contentContainer}
+      contentContainerStyle={[styles.contentContainer, flatListStyle]}
       renderItem={({ item }) => (
-        <ChannelItem channel={item} onPressChannel={onPressChannel} />
+        <ChannelItem
+          channel={item}
+          onPressChannel={onPressChannel}
+          messageTextStyle={messageTextStyle}
+        />
       )}
       ItemSeparatorComponent={() => (
         <View style={{ height: 1, backgroundColor: colors.lightGray }} />
@@ -130,9 +142,11 @@ export const ChannelList = ({
 const ChannelItem = ({
   channel,
   onPressChannel,
+  messageTextStyle,
 }: {
   channel: Channel;
   onPressChannel?: (channel: Channel) => void;
+  messageTextStyle?: StyleProp<ViewStyle>;
 }) => {
   const [unreadCount, setUnreadCount] = useState(channel.unreadCount);
 
@@ -199,7 +213,7 @@ const ChannelItem = ({
           </View>
           <View style={styles.userNameTimeContainer}>
             <Text
-              style={styles.messageText}
+              style={[styles.messageText, messageTextStyle]}
               numberOfLines={1}
               ellipsizeMode="tail"
             >
@@ -221,9 +235,7 @@ const ChannelItem = ({
 
 const styles = StyleSheet.create({
   activityIndicator: { marginTop: 20 },
-  contentContainer: {
-    height: "100%",
-  },
+  contentContainer: {},
   unreadCountText: {
     color: colors.white,
     fontSize: 12,
