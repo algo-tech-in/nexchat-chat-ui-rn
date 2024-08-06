@@ -292,13 +292,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderTopWidth: 1,
     borderTopColor: colors.paleGray,
-    paddingVertical: 8,
+    paddingTop: 8,
     backgroundColor: colors.white,
   },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    height: 42,
+    height: 48,
   },
   inputContainerBox: {
     flex: 1,
