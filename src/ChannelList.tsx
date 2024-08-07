@@ -80,7 +80,7 @@ export const ChannelList = ({
         offset: pageNumber * pageSize,
       })
       .then((data) => {
-        setChannels(data.channels);
+        setChannels((prevChannels) => [...prevChannels, ...data.channels]);
         isLastPageRef.current = data.isLastPage;
       })
       .catch((error) => {
