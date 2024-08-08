@@ -1,5 +1,5 @@
 {
-  "name": "@nexchat/chat-ui-rn",
+  "name": "@nexchat/ui-react-native",
   "version": "0.0.1",
   "description": "React Native package to integrate NexChat into your app.",
   "main": "index.ts",
@@ -20,7 +20,7 @@
     "react-native-userpic": "^2.1.0"
   },
   "peerDependencies": {
-    "@nexchat/chat-js": "ssh://git@github.com:algo-tech-in/nexchat-chat-js.git",
+    "@nexchat/client-js": "https://github.com/nexchat-io/client-js.git",
     "react": ">=18.0.0",
     "react-native": ">=0.70.0",
     "react-native-compressor": ">=1.8.25",
@@ -29,7 +29,7 @@
     "@react-native-menu/menu": ">=1.1.2"
   },
   "devDependencies": {
-    "@nexchat/chat-js": "ssh://git@github.com:algo-tech-in/nexchat-chat-js.git",
+    "@nexchat/client-js": "https://github.com/nexchat-io/client-js.git",
     "@react-native/eslint-config": "0.74.81",
     "@react-native/typescript-config": "0.74.81",
     "@types/lodash": "^4.17.4",
