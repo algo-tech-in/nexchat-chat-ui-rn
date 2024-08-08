@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "lodash": "^4.17.21",
-    "react-native-userpic": "^2.0.3"
+    "react-native-userpic": "^2.1.0"
   },
   "peerDependencies": {
     "@nexchat/chat-js": "ssh://git@github.com:algo-tech-in/nexchat-chat-js.git",
