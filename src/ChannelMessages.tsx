@@ -81,7 +81,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
 
     const removeListener = channel.on("message.new", (message: Message) => {
       channel?.markChannelRead();
-      setMessages((prevMessages) => [message, ...prevMessages]);
+      onNewMessage(message);
     });
 
     const removeUpdateListener = channel.on("channel.update", () => {
@@ -106,6 +106,15 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
       removeUpdateListener();
     };
   }, [channel?.channelId]);
+
+  const onNewMessage = (message: Message) => {
+    setMessages((prevMessages) => {
+      if (!_.find(prevMessages, { messageId: message.messageId })) {
+        return [message, ...prevMessages];
+      }
+      return prevMessages;
+    });
+  };
 
   const onEndReached = () => {
     if (!isLoading && !isLastPageRef.current) {
@@ -142,14 +151,15 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
       if (_.isEmpty(attachments) && _.isUndefined(trimmedText)) {
         reject("Message is empty");
       }
-      channel
-        ?.sendMessageAsync({
+      channel!
+        .sendMessageAsync({
           text: trimmedText,
           urlPreview: urlPreview,
           attachments: attachments,
         })
-        .then((res) => {
-          resolve(res);
+        .then((message) => {
+          onNewMessage(message);
+          resolve(message);
         })
         .catch((error) => {
           reject(error);
