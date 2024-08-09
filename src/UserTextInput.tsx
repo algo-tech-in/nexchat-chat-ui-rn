@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -10,21 +10,21 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
-} from "react-native";
-import { colors } from "./colors";
+} from 'react-native';
+import { colors } from './colors';
 import {
   Asset,
   CameraType,
   ImagePickerResponse,
   launchCamera,
   launchImageLibrary,
-} from "react-native-image-picker";
-import _ from "lodash";
-import { Image as ImageCompress, UploadType } from "react-native-compressor";
-import { backgroundUpload } from "react-native-compressor";
-import { IMAGE_COMPRESS_CONFIG } from "./constants";
-import { NexChat, Message } from "@nexchat/client-js";
-import { SendMessageProps } from "./types";
+} from 'react-native-image-picker';
+import _ from 'lodash';
+import { Image as ImageCompress, UploadType } from 'react-native-compressor';
+import { backgroundUpload } from 'react-native-compressor';
+import { IMAGE_COMPRESS_CONFIG } from './constants';
+import { NexChat, Message } from '@nexchat/client-js';
+import { SendMessageProps } from 'client-js/src/types';
 
 type UserReplyInputType = {
   client: NexChat;
@@ -39,7 +39,7 @@ const UserTextInput = ({
   isLoading = false,
   autoFocus = false,
 }: UserReplyInputType) => {
-  const [text, setText] = useState("");
+  const [text, setText] = useState('');
 
   const onChangeText = (inputText: string) => {
     setText(inputText);
@@ -52,9 +52,13 @@ const UserTextInput = ({
       if (!_.isEmpty(localMediaList)) {
         uploadResponse = await uploadSelectedMedia();
       }
-      onPressSend({ text, attachments: uploadResponse })
+      onPressSend({
+        text,
+        attachments: uploadResponse,
+        // urlPreview: [{ url: 'https://www.google.com', //This object can have any custom params }],
+      })
         .then(() => {
-          setText("");
+          setText('');
           setLocalMediaList([]);
         })
         .finally(() => {
@@ -69,7 +73,7 @@ const UserTextInput = ({
 
   const openCamera = async (cameraType: CameraType) => {
     const mediaResponse = await launchCamera({
-      mediaType: "photo",
+      mediaType: 'photo',
       quality: 0.8,
       cameraType: cameraType,
     });
@@ -79,7 +83,7 @@ const UserTextInput = ({
 
   const openPhotoGallery = async () => {
     const mediaResponse = await launchImageLibrary({
-      mediaType: "photo",
+      mediaType: 'photo',
       quality: 0.8,
       selectionLimit: 0,
     });
@@ -98,8 +102,8 @@ const UserTextInput = ({
   const uploadSelectedMedia = async () => {
     const metadata = _.map(localMediaList, (mediaItem) => {
       return {
-        mimeType: mediaItem?.type || "UNK",
-        fileUri: mediaItem?.uri || "UNK",
+        mimeType: mediaItem?.type || 'UNK',
+        fileUri: mediaItem?.uri || 'UNK',
       };
     });
 
@@ -114,9 +118,9 @@ const UserTextInput = ({
         uploadType: UploadType.BINARY_CONTENT, // TODO: Change to MULTIPART
         // fieldName: signedUrl.fileId, TODO: ADD WITH MULTIPART
         mimeType: signedUrl.mimeType,
-        httpMethod: "PUT",
+        httpMethod: 'PUT',
         headers: {
-          "Content-Type": signedUrl.mimeType,
+          'Content-Type': signedUrl.mimeType,
         },
       });
     });
@@ -128,7 +132,7 @@ const UserTextInput = ({
 
   return (
     <KeyboardAvoidingView
-      enabled={Platform.OS === "ios"}
+      enabled={Platform.OS === 'ios'}
       behavior="padding"
       keyboardVerticalOffset={100}
     >
@@ -161,7 +165,7 @@ const UserTextInput = ({
                     }}
                     style={[
                       styles.deleteButton,
-                      { display: sendingMessage ? "none" : "flex" },
+                      { display: sendingMessage ? 'none' : 'flex' },
                     ]}
                   >
                     <Text style={styles.deleteButtonText}>+</Text>
@@ -179,7 +183,7 @@ const UserTextInput = ({
               onPress={setShowAddMedia.bind(this, !showAddMedia)}
             >
               <Image
-                source={require("./assets/add.png")}
+                source={require('./assets/add.png')}
                 style={styles.send}
                 tintColor={colors.white}
               />
@@ -191,17 +195,17 @@ const UserTextInput = ({
                   style={styles.addMediaButton}
                 >
                   <Image
-                    source={require("./assets/gallery.png")}
+                    source={require('./assets/gallery.png')}
                     style={styles.send}
                     tintColor={colors.white}
                   />
                 </Pressable>
                 <Pressable
                   style={styles.addMediaButton}
-                  onPress={openCamera.bind(this, "back")}
+                  onPress={openCamera.bind(this, 'back')}
                 >
                   <Image
-                    source={require("./assets/camera.png")}
+                    source={require('./assets/camera.png')}
                     style={styles.send}
                     tintColor={colors.white}
                   />
@@ -216,7 +220,7 @@ const UserTextInput = ({
                   multiline: true,
                   style: styles.textInput,
                   onChangeText: onChangeText,
-                  placeholder: "Message",
+                  placeholder: 'Message',
                   editable: !isLoading && !sendingMessage,
                 }}
                 placeholderTextColor={colors.darkGray}
@@ -224,10 +228,10 @@ const UserTextInput = ({
             </View>
             <Pressable onPress={onSend} style={styles.sendButton}>
               {sendingMessage ? (
-                <ActivityIndicator size={"small"} color={colors.white} />
+                <ActivityIndicator size={'small'} color={colors.white} />
               ) : (
                 <Image
-                  source={require("./assets/send.png")}
+                  source={require('./assets/send.png')}
                   style={styles.send}
                   tintColor={colors.white}
                 />
@@ -244,11 +248,11 @@ export { UserTextInput };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
   },
   mediaScrollView: {
     backgroundColor: colors.paleGray,
-    width: "100%",
+    width: '100%',
     paddingVertical: 8,
     paddingLeft: 24,
     borderTopRightRadius: 12,
@@ -264,16 +268,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   deleteButton: {
-    position: "absolute",
+    position: 'absolute',
     right: -8,
     top: -8,
     borderRadius: 100,
     height: 24,
     width: 24,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: colors.softRed,
-    transform: [{ rotate: "45deg" }],
+    transform: [{ rotate: '45deg' }],
     shadowColor: colors.black,
     shadowOffset: {
       width: 0,
@@ -285,7 +289,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: colors.white,
-    fontWeight: "600",
+    fontWeight: '600',
     fontSize: 16,
   },
   inputContainer: {
@@ -296,8 +300,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     height: 48,
   },
   inputContainerBox: {
@@ -307,8 +311,8 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 16,
     minHeight: 48,
-    paddingTop: Platform.OS === "ios" ? 14 : 0,
-    paddingBottom: Platform.OS === "ios" ? 14 : 2,
+    paddingTop: Platform.OS === 'ios' ? 14 : 0,
+    paddingBottom: Platform.OS === 'ios' ? 14 : 2,
     borderRadius: 12,
     paddingHorizontal: 12,
     fontSize: 16,
@@ -318,8 +322,8 @@ const styles = StyleSheet.create({
     height: 40,
     width: 40,
     borderRadius: 120,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: colors.black,
     shadowOffset: {
       width: 0,
@@ -331,13 +335,13 @@ const styles = StyleSheet.create({
   },
   addMediaContainer: {
     backgroundColor: colors.darkMint,
-    position: "absolute",
+    position: 'absolute',
     top: -112,
     paddingVertical: 12,
     paddingHorizontal: 4,
     borderRadius: 32,
     height: 100,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   addMediaButton: {
     padding: 8,
@@ -348,8 +352,8 @@ const styles = StyleSheet.create({
     height: 40,
     width: 40,
     borderRadius: 120,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: colors.black,
     shadowOffset: {
       width: 0,

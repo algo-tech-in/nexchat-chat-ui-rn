@@ -1,6 +1,6 @@
-import { Channel, Message, NexChat } from "@nexchat/client-js";
-import _ from "lodash";
-import React, { useEffect, useRef, useState } from "react";
+import { Channel, Message, NexChat } from '@nexchat/client-js';
+import _ from 'lodash';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,14 +13,14 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-} from "react-native";
-import ImageViewing from "react-native-image-viewing";
-import { SendMessageProps } from "./types";
-import { UserTextInput } from "./UserTextInput";
-import { isSameDate } from "./utils";
-import { colors } from "./colors";
-import { Userpic } from "react-native-userpic";
-import { MenuView, NativeActionEvent } from "@react-native-menu/menu";
+} from 'react-native';
+import ImageViewing from 'react-native-image-viewing';
+import { UserTextInput } from './UserTextInput';
+import { isSameDate } from './utils';
+import { colors } from './colors';
+import { Userpic } from 'react-native-userpic';
+import { MenuView, NativeActionEvent } from '@react-native-menu/menu';
+import { SendMessageProps } from 'client-js/src/types';
 
 type ChannelMessagesProps = {
   client: NexChat;
@@ -79,12 +79,12 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
       return;
     }
 
-    const removeListener = channel.on("message.new", (message: Message) => {
+    const removeListener = channel.on('message.new', (message: Message) => {
       channel?.markChannelRead();
       onNewMessage(message);
     });
 
-    const removeUpdateListener = channel.on("channel.update", () => {
+    const removeUpdateListener = channel.on('channel.update', () => {
       setIsBlocked(channel?.isBlocked ?? false);
       setIsBlockedByOtherUser(channel?.isOtherUserBlocked ?? false);
     });
@@ -149,7 +149,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
     const trimmedText = _.isEmpty(text) ? undefined : text?.trim?.();
     return new Promise((resolve, reject) => {
       if (_.isEmpty(attachments) && _.isUndefined(trimmedText)) {
-        reject("Message is empty");
+        reject('Message is empty');
       }
       channel!
         .sendMessageAsync({
@@ -200,43 +200,43 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
       return;
     }
     switch (nativeEvent.event) {
-      case "block":
+      case 'block':
         Alert.alert(
           `Are you sure you want to block ${displayDetails.name}?`,
-          "You can no longer send or receive any messages. You can unblock anytime.",
+          'You can no longer send or receive any messages. You can unblock anytime.',
           [
             {
-              text: "Cancel",
-              style: "cancel",
+              text: 'Cancel',
+              style: 'cancel',
             },
-            { text: "Block", onPress: onBlockPress, style: "destructive" },
+            { text: 'Block', onPress: onBlockPress, style: 'destructive' },
           ]
         );
         break;
-      case "unblock":
+      case 'unblock':
         Alert.alert(
           `Are you sure you want to unblock ${displayDetails.name}?`,
-          "You can again send and receive messages.",
+          'You can again send and receive messages.',
           [
             {
-              text: "Cancel",
-              style: "cancel",
+              text: 'Cancel',
+              style: 'cancel',
             },
-            { text: "Unblock", onPress: onUnblockPress },
+            { text: 'Unblock', onPress: onUnblockPress },
           ]
         );
         break;
 
-      case "clear":
+      case 'clear':
         Alert.alert(
           `Are you sure you want to clear this chat?`,
-          "All messages will be cleared. You can still send and receive new messages.",
+          'All messages will be cleared. You can still send and receive new messages.',
           [
             {
-              text: "Cancel",
-              style: "cancel",
+              text: 'Cancel',
+              style: 'cancel',
             },
-            { text: "Clear", onPress: onClearChatPress, style: "destructive" },
+            { text: 'Clear', onPress: onClearChatPress, style: 'destructive' },
           ]
         );
         break;
@@ -249,10 +249,10 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
     <View style={styles.container}>
       {showHeader ? (
         <View style={styles.headerContainer}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity onPress={onBackPress} activeOpacity={0.8}>
               <Image
-                source={require("./assets/back.png")}
+                source={require('./assets/back.png')}
                 style={styles.back}
                 tintColor={colors.black}
               />
@@ -260,7 +260,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
             <TouchableOpacity
               onPress={onHeaderProfilePress}
               activeOpacity={0.8}
-              style={{ flexDirection: "row", alignItems: "center" }}
+              style={{ flexDirection: 'row', alignItems: 'center' }}
             >
               <Userpic
                 size={40}
@@ -283,17 +283,17 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
                   // { id: "clear", title: "Clear Chat" },
                   isBlocked
                     ? {
-                        id: "unblock",
-                        title: "Unblock",
+                        id: 'unblock',
+                        title: 'Unblock',
                       }
                     : {
-                        id: "block",
-                        title: "Block",
+                        id: 'block',
+                        title: 'Block',
                       },
                 ]}
               >
                 <Image
-                  source={require("./assets/more.png")}
+                  source={require('./assets/more.png')}
                   style={styles.more}
                   tintColor={colors.black}
                 />
@@ -306,14 +306,14 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
         {isLoading ? (
           <View
             style={{
-              position: "absolute",
+              position: 'absolute',
               flex: 1,
-              height: "100%",
-              width: "100%",
-              alignItems: "center",
-              justifyContent: "center",
+              height: '100%',
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
               zIndex: 100,
-              backgroundColor: "rgba(0,0,0,0.4)",
+              backgroundColor: 'rgba(0,0,0,0.4)',
             }}
           >
             <ActivityIndicator
@@ -362,8 +362,8 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
               <View
                 style={{
                   flex: 1,
-                  justifyContent: "center",
-                  alignItems: "center",
+                  justifyContent: 'center',
+                  alignItems: 'center',
                 }}
               >
                 <Text>No messages yet</Text>
@@ -408,9 +408,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         {!_.isEmpty(text) && <Text style={styles.msgText}>{text}</Text>}
         <Text style={styles.msgTimeText}>
           {new Date(createdAt).toLocaleTimeString(undefined, {
-            timeStyle: "short",
-            hour: "2-digit",
-            minute: "2-digit",
+            timeStyle: 'short',
+            hour: '2-digit',
+            minute: '2-digit',
           })}
         </Text>
       </View>
@@ -525,14 +525,14 @@ const styles = StyleSheet.create({
     height: 12,
   },
   messageContainer: {
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
     paddingHorizontal: 12,
-    marginRight: "10%",
+    marginRight: '10%',
   },
   messageContainerUser: {
-    alignItems: "flex-end",
-    marginRight: "0%",
-    marginLeft: "10%",
+    alignItems: 'flex-end',
+    marginRight: '0%',
+    marginLeft: '10%',
   },
   messageBubble: {
     backgroundColor: colors.white,
@@ -546,28 +546,28 @@ const styles = StyleSheet.create({
   activityIndicator: {},
   msgText: { paddingRight: 16, color: colors.black },
   msgTimeText: {
-    alignSelf: "flex-end",
+    alignSelf: 'flex-end',
     fontSize: 10,
     color: colors.darkGray,
     marginTop: 4,
   },
   dateContainer: {
-    width: "100%",
-    alignItems: "center",
+    width: '100%',
+    alignItems: 'center',
     paddingVertical: 12,
   },
   dateContent: {
-    backgroundColor: "#ffffff80",
+    backgroundColor: '#ffffff80',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
-    overflow: "hidden",
+    overflow: 'hidden',
     color: colors.darkGray,
   },
   flatListContainer: { paddingVertical: 18 },
   blockedContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 20,
     backgroundColor: colors.softGray,
   },
@@ -576,36 +576,36 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   image: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 1,
     borderRadius: 12,
   },
   imageContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 6,
   },
   imageWrapper: {
-    width: "49%",
+    width: '49%',
     aspectRatio: 1,
     borderRadius: 12,
   },
   imageWrapperOverflow: {
-    width: "49%",
+    width: '49%',
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   imageOverflow: {
-    width: "100%",
+    width: '100%',
     aspectRatio: 1,
   },
   imageCountOverlay: {
-    position: "absolute",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
+    position: 'absolute',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageLoading: {
     backgroundColor: colors.lightGray,
@@ -622,9 +622,9 @@ const styles = StyleSheet.create({
     width: 18,
   },
   headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     backgroundColor: colors.white,
     paddingVertical: 12,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: colors.black,
     marginLeft: 12,
-    fontWeight: "600",
+    fontWeight: '600',
     fontSize: 16,
   },
 });
