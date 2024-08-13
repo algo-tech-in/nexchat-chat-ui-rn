@@ -258,6 +258,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
                 source={require('./assets/back.png')}
                 style={styles.back}
                 tintColor={colors.black}
+                resizeMode="stretch"
               />
             </TouchableOpacity>
             <TouchableOpacity
@@ -655,9 +656,9 @@ const styles = StyleSheet.create({
     borderColor: colors.white,
   },
   back: {
-    height: 24,
-    width: 24,
-    marginRight: 4,
+    height: 20,
+    width: 20,
+    marginRight: 8,
   },
   more: {
     height: 18,
