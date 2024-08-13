@@ -412,6 +412,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           isSendedByUser && styles.messageBubbleUser,
         ]}
       >
+        {!_.isEmpty(attachments) && <MediaHandler imageList={attachments} />}
         {!_.isNil(urls?.[0]?.url) && (
           <Pressable
             style={{
@@ -448,7 +449,6 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
             </View>
           </Pressable>
         )}
-        {!_.isEmpty(attachments) && <MediaHandler imageList={attachments} />}
         {!_.isEmpty(text) && (
           <Hyperlink
             onPress={(url) => {
