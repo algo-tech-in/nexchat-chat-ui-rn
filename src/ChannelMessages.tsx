@@ -23,6 +23,7 @@ import { Userpic } from 'react-native-userpic';
 import { MenuView, NativeActionEvent } from '@react-native-menu/menu';
 import { SendMessageProps } from 'client-js/src/types';
 import { FulfilledLinkPreview } from './types';
+import Hyperlink from 'react-native-hyperlink';
 
 type ChannelMessagesProps = {
   client: NexChat;
@@ -448,7 +449,16 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           </Pressable>
         )}
         {!_.isEmpty(attachments) && <MediaHandler imageList={attachments} />}
-        {!_.isEmpty(text) && <Text style={styles.msgText}>{text}</Text>}
+        {!_.isEmpty(text) && (
+          <Hyperlink
+            linkDefault
+            linkStyle={{
+              color: colors.link,
+            }}
+          >
+            <Text style={styles.msgText}>{text}</Text>
+          </Hyperlink>
+        )}
         <Text style={styles.msgTimeText}>
           {new Date(createdAt).toLocaleTimeString(undefined, {
             timeStyle: 'short',

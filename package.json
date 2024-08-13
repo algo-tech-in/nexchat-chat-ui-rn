@@ -17,7 +17,8 @@
   ],
   "dependencies": {
     "lodash": "^4.17.21",
-    "react-native-userpic": "^2.1.0"
+    "react-native-userpic": "^2.1.0",
+    "react-native-hyperlink": "^0.0.22"
   },
   "peerDependencies": {
     "@nexchat/client-js": "https://github.com/nexchat-io/client-js.git",
