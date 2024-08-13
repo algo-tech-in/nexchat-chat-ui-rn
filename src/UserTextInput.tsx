@@ -64,7 +64,9 @@ const UserTextInput = ({
       onPressSend({
         text,
         attachments: uploadResponse,
-        urlPreview: [urlToPreview] as FulfilledLinkPreview[],
+        urlPreview: _.isEmpty(urlToPreview)
+          ? []
+          : ([urlToPreview] as FulfilledLinkPreview[]),
       })
         .then(() => {
           setText('');
@@ -333,11 +335,11 @@ const handleUrlPreviewWithDebounce = _.debounce(
           });
         })
         .catch(() => {
-          setUrlToPreview(null);
+          setUrlToPreview(undefined);
         })
         .finally(setIsLoadingUrlPreview.bind(this, false));
     } else if (_.isEmpty(urlsToProcess)) {
-      setUrlToPreview(null);
+      setUrlToPreview(undefined);
     }
   },
   1000
