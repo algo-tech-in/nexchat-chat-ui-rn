@@ -451,7 +451,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         {!_.isEmpty(attachments) && <MediaHandler imageList={attachments} />}
         {!_.isEmpty(text) && (
           <Hyperlink
-            linkDefault
+            onPress={(url) => {
+              Linking.openURL(url).catch(() => {});
+            }}
             linkStyle={{
               color: colors.link,
             }}
