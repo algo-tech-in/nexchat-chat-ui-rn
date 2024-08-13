@@ -72,6 +72,7 @@ const UserTextInput = ({
           setText('');
           setLocalMediaList([]);
           setUrlToPreview(undefined);
+          handleUrlPreviewWithDebounce.cancel();
         })
         .finally(() => {
           setSendingMessage(false);
