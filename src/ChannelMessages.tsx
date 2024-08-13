@@ -411,7 +411,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           isSendedByUser && styles.messageBubbleUser,
         ]}
       >
-        {!_.isEmpty(urls) && (
+        {!_.isNil(urls?.[0]?.url) && (
           <Pressable
             style={{
               backgroundColor: colors.white,
@@ -421,7 +421,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               flexDirection: 'row',
             }}
             onPress={() => {
-              Linking.openURL(urls?.[0]?.url).catch(() => {});
+              Linking.openURL(urls?.[0]?.originalUrl).catch(() => {});
             }}
           >
             {showUrlImage && !_.isEmpty(urls?.[0]?.images?.[0]) && (
