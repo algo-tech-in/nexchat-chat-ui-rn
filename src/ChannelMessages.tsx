@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   ImageProps,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -21,6 +22,7 @@ import { colors } from './colors';
 import { Userpic } from 'react-native-userpic';
 import { MenuView, NativeActionEvent } from '@react-native-menu/menu';
 import { SendMessageProps } from 'client-js/src/types';
+import { FulfilledLinkPreview } from './types';
 
 type ChannelMessagesProps = {
   client: NexChat;
@@ -41,6 +43,7 @@ type MessageBubbleProps = {
   text: string;
   createdAt: string;
   attachments: Array<{ url: string }>;
+  urls: FulfilledLinkPreview[];
 };
 
 const ItemSeparatorComponent = () => <View style={styles.itemSeparator} />;
@@ -350,6 +353,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
                   text={item.text}
                   createdAt={item.createdAt}
                   attachments={item.attachments}
+                  urls={item.urlPreview}
                 />
               </View>
             );
@@ -390,7 +394,9 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   text,
   createdAt,
   attachments,
+  urls,
 }) => {
+  const [showUrlImage, setShowUrlImage] = useState(true);
   return (
     <View
       style={[
@@ -404,6 +410,42 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
           isSendedByUser && styles.messageBubbleUser,
         ]}
       >
+        {!_.isEmpty(urls) && (
+          <Pressable
+            style={{
+              backgroundColor: colors.white,
+              padding: 8,
+              borderRadius: 4,
+              marginBottom: 8,
+              flexDirection: 'row',
+            }}
+            onPress={() => {
+              Linking.openURL(urls?.[0]?.url).catch(() => {});
+            }}
+          >
+            {showUrlImage && !_.isEmpty(urls?.[0]?.images?.[0]) && (
+              <Image
+                source={{ uri: urls?.[0]?.images?.[0] }}
+                style={{ height: 40, width: 40, marginRight: 16 }}
+                resizeMode="contain"
+                onError={setShowUrlImage.bind(this, false)}
+              />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ fontWeight: 600, fontSize: 16, flex: 1 }}
+                numberOfLines={2}
+              >
+                {urls?.[0]?.title}
+              </Text>
+              {!_.isEmpty(urls?.[0]?.description) && (
+                <Text numberOfLines={2} style={{ flex: 1 }}>
+                  {urls?.[0]?.description}
+                </Text>
+              )}
+            </View>
+          </Pressable>
+        )}
         {!_.isEmpty(attachments) && <MediaHandler imageList={attachments} />}
         {!_.isEmpty(text) && <Text style={styles.msgText}>{text}</Text>}
         <Text style={styles.msgTimeText}>

@@ -12,7 +12,7 @@ export interface FulfilledLinkPreview {
   originalUrl: string;
   source: 'store' | 'api';
 }
-interface RejectedLinkPreviewReason {
+export interface RejectedLinkPreviewReason {
   message: string;
   type: 'system' | 'other';
 }

@@ -43,9 +43,9 @@ const UserTextInput = ({
   autoFocus = false,
 }: UserReplyInputType) => {
   const [text, setText] = useState('');
-  const [urlToPreview, setUrlToPreview] = useState<FulfilledLinkPreview | null>(
-    null
-  );
+  const [urlToPreview, setUrlToPreview] = useState<
+    FulfilledLinkPreview | undefined
+  >(undefined);
   const [urlImageHasError, setUrlImageHasError] = useState<boolean>(false);
   const [isLoadingUrlPreview, setIsLoadingUrlPreview] =
     useState<boolean>(false);
@@ -64,11 +64,12 @@ const UserTextInput = ({
       onPressSend({
         text,
         attachments: uploadResponse,
-        // urlPreview: [{ url: 'https://www.google.com', //This object can have any custom params }],
+        urlPreview: [urlToPreview] as FulfilledLinkPreview[],
       })
         .then(() => {
           setText('');
           setLocalMediaList([]);
+          setUrlToPreview(undefined);
         })
         .finally(() => {
           setSendingMessage(false);
@@ -196,13 +197,7 @@ const UserTextInput = ({
         <Pressable
           onPress={() => {
             if (urlToPreview?.url) {
-              Linking.canOpenURL(urlToPreview?.url)
-                .then((supported) => {
-                  if (supported) {
-                    Linking.openURL(urlToPreview?.url).catch(() => {});
-                  }
-                })
-                .catch(() => {});
+              Linking.openURL(urlToPreview?.url).catch(() => {});
             }
           }}
           style={[
