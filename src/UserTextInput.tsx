@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -10,6 +10,7 @@ import {
   Text,
   ScrollView,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { colors } from './colors';
 import {
@@ -25,6 +26,8 @@ import { backgroundUpload } from 'react-native-compressor';
 import { IMAGE_COMPRESS_CONFIG } from './constants';
 import { NexChat, Message } from '@nexchat/client-js';
 import { SendMessageProps } from 'client-js/src/types';
+import { fetchUrlsToPreview } from './utils';
+import { FulfilledLinkPreview } from './types';
 
 type UserReplyInputType = {
   client: NexChat;
@@ -40,6 +43,12 @@ const UserTextInput = ({
   autoFocus = false,
 }: UserReplyInputType) => {
   const [text, setText] = useState('');
+  const [urlToPreview, setUrlToPreview] = useState<FulfilledLinkPreview | null>(
+    null
+  );
+  const [urlImageHasError, setUrlImageHasError] = useState<boolean>(false);
+  const [isLoadingUrlPreview, setIsLoadingUrlPreview] =
+    useState<boolean>(false);
 
   const onChangeText = (inputText: string) => {
     setText(inputText);
@@ -130,11 +139,22 @@ const UserTextInput = ({
     return signedUrlList;
   };
 
+  useEffect(() => {
+    if (!_.isEmpty(text)) {
+      handleUrlPreviewWithDebounce({
+        text,
+        urlToPreview,
+        setUrlToPreview,
+        setIsLoadingUrlPreview,
+      });
+    }
+  }, [text]);
+
   return (
     <KeyboardAvoidingView
       enabled={Platform.OS === 'ios'}
       behavior="padding"
-      keyboardVerticalOffset={100}
+      keyboardVerticalOffset={112}
     >
       <View style={styles.container}>
         {!_.isEmpty(localMediaList) && (
@@ -142,10 +162,7 @@ const UserTextInput = ({
             showsHorizontalScrollIndicator={false}
             contentInset={{ left: 0, right: 24 }}
             horizontal={true}
-            contentContainerStyle={{
-              paddingRight: 28,
-            }}
-            style={styles.mediaScrollView}
+            contentContainerStyle={styles.mediaScrollView}
           >
             {_.map(localMediaList, (mediaItem, index) => {
               return (
@@ -175,6 +192,61 @@ const UserTextInput = ({
             })}
           </ScrollView>
         )}
+
+        <Pressable
+          onPress={() => {
+            if (urlToPreview?.url) {
+              Linking.canOpenURL(urlToPreview?.url)
+                .then((supported) => {
+                  if (supported) {
+                    Linking.openURL(urlToPreview?.url).catch(() => {});
+                  }
+                })
+                .catch(() => {});
+            }
+          }}
+          style={[
+            styles.urlPreviewContainer,
+            {
+              display:
+                isLoadingUrlPreview ||
+                (!_.isEmpty(urlToPreview) && !_.isEmpty(urlToPreview?.title))
+                  ? 'flex'
+                  : 'none',
+            },
+          ]}
+        >
+          {!urlImageHasError && !_.isEmpty(urlToPreview?.images?.[0]) && (
+            <View style={styles.urlPreviewImageContainer}>
+              <Image
+                source={{ uri: urlToPreview?.images?.[0] }}
+                style={styles.urlPreviewImage}
+                resizeMode={'contain'}
+                onLoadStart={setUrlImageHasError.bind(this, false)}
+                onError={setUrlImageHasError.bind(this, true)}
+              />
+            </View>
+          )}
+
+          <View style={styles.urlPreviewTextContainer}>
+            <Text numberOfLines={1} style={styles.urlPreviewTitle}>
+              {urlToPreview?.title}
+            </Text>
+            {!_.isEmpty(urlToPreview?.description) && (
+              <Text numberOfLines={2}>{urlToPreview?.description}</Text>
+            )}
+          </View>
+
+          {isLoadingUrlPreview && (
+            <ActivityIndicator
+              animating={true}
+              size={'small'}
+              color={colors.white}
+              style={styles.urlPreviewActivityIndicator}
+            />
+          )}
+        </Pressable>
+
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <Pressable
@@ -212,20 +284,21 @@ const UserTextInput = ({
                 </Pressable>
               </View>
             )}
-            <View style={styles.inputContainerBox}>
-              <TextInput
-                value={text}
-                {...{
-                  autoFocus: autoFocus,
-                  multiline: true,
-                  style: styles.textInput,
-                  onChangeText: onChangeText,
-                  placeholder: 'Message',
-                  editable: !isLoading && !sendingMessage,
-                }}
-                placeholderTextColor={colors.darkGray}
-              />
-            </View>
+            <TextInput
+              value={text}
+              {...{
+                autoFocus: autoFocus,
+                multiline: true,
+                style: [
+                  styles.textInput,
+                  sendingMessage ? { color: colors.darkGray } : {},
+                ],
+                onChangeText: onChangeText,
+                placeholder: 'Message',
+                editable: !isLoading && !sendingMessage,
+              }}
+              placeholderTextColor={colors.darkGray}
+            />
             <Pressable onPress={onSend} style={styles.sendButton}>
               {sendingMessage ? (
                 <ActivityIndicator size={'small'} color={colors.white} />
@@ -245,6 +318,37 @@ const UserTextInput = ({
 };
 
 export { UserTextInput };
+
+const handleUrlPreviewWithDebounce = _.debounce(
+  ({ text, urlToPreview, setUrlToPreview, setIsLoadingUrlPreview }) => {
+    const urlsToProcess: string[] = text.match(
+      /\b(?:https?|ftp):\/\/[^\s\/$.?#].[^\s]*\b/g
+    );
+    if (
+      !_.isEmpty(urlsToProcess) &&
+      urlsToProcess?.[0] !==
+        urlToPreview?.originalUrl /** limiting to 1 url for now */
+    ) {
+      setIsLoadingUrlPreview(true);
+      fetchUrlsToPreview([urlsToProcess[0]])
+        .then((response) => {
+          setUrlToPreview({
+            ...response?.[0]?.value,
+            originalUrl: urlsToProcess?.[0],
+          });
+        })
+        .catch(() => {
+          setUrlToPreview(null);
+        })
+        .finally(setIsLoadingUrlPreview.bind(this, false));
+    } else if (_.isEmpty(urlsToProcess)) {
+      setUrlToPreview(null);
+    }
+  },
+  1000
+);
+
+export default UserTextInput;
 
 const styles = StyleSheet.create({
   container: {
@@ -296,26 +400,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderTopWidth: 1,
     borderTopColor: colors.paleGray,
-    paddingTop: 8,
+    paddingTop: 10,
+    paddingBottom: 12,
     backgroundColor: colors.white,
   },
   inputWrapper: {
     flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-  },
-  inputContainerBox: {
-    flex: 1,
+    alignItems: 'flex-end',
   },
   textInput: {
     flex: 1,
     marginHorizontal: 16,
-    minHeight: 48,
-    paddingTop: Platform.OS === 'ios' ? 14 : 0,
+    paddingTop: Platform.OS === 'ios' ? 12 : 0,
     paddingBottom: Platform.OS === 'ios' ? 14 : 2,
     borderRadius: 12,
     paddingHorizontal: 12,
     fontSize: 16,
+    maxHeight: 120,
+    height: '100%',
   },
   addButton: {
     backgroundColor: colors.darkMint,
@@ -367,9 +469,42 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
-  mediaIconContainer: {
+  urlPreviewContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     backgroundColor: colors.white,
-    padding: 8,
-    borderRadius: 100,
+    borderTopRightRadius: 12,
+    borderTopLeftRadius: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.softGray,
+    alignItems: 'center',
+  },
+  urlPreviewImageContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    marginRight: 16,
+  },
+  urlPreviewImage: {
+    height: 50,
+    width: 50,
+    borderRadius: 12,
+  },
+  urlPreviewTextContainer: {
+    justifyContent: 'center',
+    flex: 1,
+  },
+  urlPreviewTitle: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  urlPreviewActivityIndicator: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: '#00000080',
   },
 });
