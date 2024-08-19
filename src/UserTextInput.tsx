@@ -49,40 +49,40 @@ const UserTextInput = ({
   const [urlImageHasError, setUrlImageHasError] = useState<boolean>(false);
   const [isLoadingUrlPreview, setIsLoadingUrlPreview] =
     useState<boolean>(false);
+  const [showAddMedia, setShowAddMedia] = useState(false);
+  const [localMediaList, setLocalMediaList] = useState<Asset[]>([]);
+  const [isMessageBeingSent, setIsMessageBeingSent] = useState<boolean>(false);
 
   const onChangeText = (inputText: string) => {
+    if (isLoading || isMessageBeingSent) {
+      return;
+    }
     setText(inputText);
   };
 
   const onSend = async () => {
-    setSendingMessage(true);
-    if (_.isFunction(onPressSend)) {
-      let uploadResponse = undefined;
-      if (!_.isEmpty(localMediaList)) {
-        uploadResponse = await uploadSelectedMedia();
-      }
-      onPressSend({
-        text,
-        attachments: uploadResponse,
-        urlPreview: _.isEmpty(urlToPreview)
-          ? []
-          : ([urlToPreview] as FulfilledLinkPreview[]),
-      })
-        .then(() => {
-          setText('');
-          setLocalMediaList([]);
-          setUrlToPreview(undefined);
-          handleUrlPreviewWithDebounce.cancel();
-        })
-        .finally(() => {
-          setSendingMessage(false);
-        });
+    setIsMessageBeingSent(true);
+    let uploadResponse = undefined;
+    if (!_.isEmpty(localMediaList)) {
+      uploadResponse = await uploadSelectedMedia();
     }
+    onPressSend({
+      text,
+      attachments: uploadResponse,
+      urlPreview: _.isEmpty(urlToPreview)
+        ? []
+        : ([urlToPreview] as FulfilledLinkPreview[]),
+    })
+      .then(() => {
+        setText('');
+        setLocalMediaList([]);
+        setUrlToPreview(undefined);
+        handleUrlPreviewWithDebounce.cancel();
+      })
+      .finally(() => {
+        setIsMessageBeingSent(false);
+      });
   };
-
-  const [showAddMedia, setShowAddMedia] = useState(false);
-  const [localMediaList, setLocalMediaList] = useState<Asset[]>([]);
-  const [sendingMessage, setSendingMessage] = useState<boolean>(false);
 
   const openCamera = async (cameraType: CameraType) => {
     const mediaResponse = await launchCamera({
@@ -186,7 +186,7 @@ const UserTextInput = ({
                     }}
                     style={[
                       styles.deleteButton,
-                      { display: sendingMessage ? 'none' : 'flex' },
+                      { display: isMessageBeingSent ? 'none' : 'flex' },
                     ]}
                   >
                     <Text style={styles.deleteButtonText}>+</Text>
@@ -248,7 +248,7 @@ const UserTextInput = ({
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <Pressable
-              disabled={sendingMessage}
+              disabled={isMessageBeingSent}
               style={styles.addButton}
               onPress={setShowAddMedia.bind(this, !showAddMedia)}
             >
@@ -284,21 +284,18 @@ const UserTextInput = ({
             )}
             <TextInput
               value={text}
-              {...{
-                autoFocus: autoFocus,
-                multiline: true,
-                style: [
-                  styles.textInput,
-                  sendingMessage ? { color: colors.darkGray } : {},
-                ],
-                onChangeText: onChangeText,
-                placeholder: 'Message',
-                editable: !isLoading && !sendingMessage,
-              }}
+              autoFocus={autoFocus}
+              multiline={true}
+              style={[
+                styles.textInput,
+                isMessageBeingSent ? { color: colors.darkGray } : {},
+              ]}
+              onChangeText={onChangeText}
+              placeholder={'Message'}
               placeholderTextColor={colors.darkGray}
             />
             <Pressable onPress={onSend} style={styles.sendButton}>
-              {sendingMessage ? (
+              {isMessageBeingSent ? (
                 <ActivityIndicator size={'small'} color={colors.white} />
               ) : (
                 <Image
