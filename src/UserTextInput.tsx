@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import { Message, NexChat } from '@nexchat/client-js';
+import { SendMessageProps } from 'client-js/src/types';
+import _ from 'lodash';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Platform,
+  Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   View,
-  Text,
-  ScrollView,
-  ActivityIndicator,
-  Linking,
 } from 'react-native';
-import { colors } from './colors';
+import {
+  backgroundUpload,
+  Image as ImageCompress,
+  UploadType,
+} from 'react-native-compressor';
 import {
   Asset,
   CameraType,
@@ -20,14 +26,10 @@ import {
   launchCamera,
   launchImageLibrary,
 } from 'react-native-image-picker';
-import _ from 'lodash';
-import { Image as ImageCompress, UploadType } from 'react-native-compressor';
-import { backgroundUpload } from 'react-native-compressor';
+import { colors } from './colors';
 import { IMAGE_COMPRESS_CONFIG, IS_IOS } from './constants';
-import { NexChat, Message } from '@nexchat/client-js';
-import { SendMessageProps } from 'client-js/src/types';
-import { fetchUrlsToPreview } from './utils';
 import { FulfilledLinkPreview } from './types';
+import { fetchUrlsToPreview } from './utils';
 
 type UserReplyInputType = {
   client: NexChat;
@@ -60,8 +62,16 @@ const UserTextInput = ({
     setText(inputText);
   };
 
+  const isMessageOnSendBeignProcessed = useRef(false);
   const onSend = async () => {
+    if (isMessageOnSendBeignProcessed.current) {
+      return;
+    }
+    if (_.isEmpty(text) && _.isEmpty(localMediaList)) {
+      return;
+    }
     setIsMessageBeingSent(true);
+    isMessageOnSendBeignProcessed.current = true;
     let uploadResponse = undefined;
     if (!_.isEmpty(localMediaList)) {
       uploadResponse = await uploadSelectedMedia();
@@ -81,6 +91,7 @@ const UserTextInput = ({
       })
       .finally(() => {
         setIsMessageBeingSent(false);
+        isMessageOnSendBeignProcessed.current = false;
       });
   };
 
