@@ -1,5 +1,5 @@
-import _ from "lodash";
-import React, { useEffect, useRef, useState } from "react";
+import _ from 'lodash';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -10,10 +10,10 @@ import {
   TextStyle,
   View,
   ViewStyle,
-} from "react-native";
-import { Userpic } from "react-native-userpic";
-import { Channel, NexChat } from "@nexchat/client-js";
-import { colors } from "./colors";
+} from 'react-native';
+import { Userpic } from 'react-native-userpic';
+import { Channel, NexChat } from '@nexchat/client-js';
+import { colors } from './colors';
 
 export const ChannelList = ({
   client,
@@ -37,20 +37,20 @@ export const ChannelList = ({
   useEffect(() => {
     getUserChannels({ pageNumber: 0 });
 
-    const removeMessageListener = client.on("message.new", () => {
+    const removeMessageListener = client.on('message.new', () => {
       setRefreshList((prev) => !prev);
       // Sort channels based on last activity time
       setChannels((prevChannels) => {
-        return _.sortBy(prevChannels, ["lastActivityAt"]).reverse();
+        return _.sortBy(prevChannels, ['lastActivityAt']).reverse();
       });
     });
-    const removeNewChannelListener = client.on("channel.created", (channel) => {
+    const removeNewChannelListener = client.on('channel.created', (channel) => {
       client.getChannelByIdAsync(channel.channelId).then((newChannel) => {
         setChannels((prevChannels) => {
           let newChannels = [...prevChannels];
           newChannels.unshift(newChannel);
-          newChannels = _.uniqBy(newChannels, "channelId");
-          return _.sortBy(newChannels, ["lastActivityAt"]).reverse();
+          newChannels = _.uniqBy(newChannels, 'channelId');
+          return _.sortBy(newChannels, ['lastActivityAt']).reverse();
         });
       });
     });
@@ -148,7 +148,7 @@ const ChannelItem = ({
 
   useEffect(() => {
     const removeChannelUpdateListner = channel.on(
-      "channel.updateUnReadCount",
+      'channel.updateUnReadCount',
       (channelUpdateData) => {
         setUnreadCount(channelUpdateData.unreadCount ?? 0);
       }
@@ -161,19 +161,19 @@ const ChannelItem = ({
 
   const convertTimeStamp = (timeStamp?: string) => {
     if (!timeStamp) {
-      return "";
+      return '';
     }
 
     const date = new Date(timeStamp);
     const today = new Date();
     if (date.getDate() === today.getDate()) {
       return date.toLocaleTimeString(undefined, {
-        timeStyle: "short",
-        hour: "2-digit",
-        minute: "2-digit",
+        timeStyle: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } else if (date.getDate() === today.getDate() - 1) {
-      return "Yesterday";
+      return 'Yesterday';
     } else {
       return date.toLocaleDateString();
     }
@@ -212,8 +212,8 @@ const ChannelItem = ({
               ellipsizeMode="tail"
             >
               {channel?.lastMessage?.attachments?.[0]
-                ? "📎 Attachment"
-                : channel?.lastMessage?.text ?? "Start a conversation 💬"}
+                ? '📎 Attachment'
+                : channel?.lastMessage?.text ?? 'Start a conversation 💬'}
             </Text>
             {unreadCount ? (
               <View style={styles.unreadCountContainer}>
@@ -239,45 +239,45 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     width: 20,
     height: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   pressable: {
     height: 40,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   container: {
     paddingHorizontal: 20,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingVertical: 12,
   },
-  item: { flexDirection: "row", alignItems: "center" },
+  item: { flexDirection: 'row', alignItems: 'center' },
   profileImage: {
     height: 40,
     width: 40,
     borderRadius: 40,
-    backgroundColor: "blue",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'blue',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   msgContainer: { marginLeft: 16, flex: 1 },
   userNameTimeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
   },
   messageText: {
-    fontWeight: "400",
+    fontWeight: '400',
     fontSize: 16,
     color: colors.grayMediumLight,
-    maxWidth: "90%",
+    maxWidth: '90%',
   },
-  displayName: { fontWeight: "600", fontSize: 18, flex: 1, paddingRight: 12 },
+  displayName: { fontWeight: '600', fontSize: 18, flex: 1, paddingRight: 12 },
   timeText: { fontSize: 12, color: colors.grayMediumLight },
   emptyList: {
     marginTop: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
 });
