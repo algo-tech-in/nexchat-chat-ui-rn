@@ -23,7 +23,7 @@ import {
 import _ from 'lodash';
 import { Image as ImageCompress, UploadType } from 'react-native-compressor';
 import { backgroundUpload } from 'react-native-compressor';
-import { IMAGE_COMPRESS_CONFIG } from './constants';
+import { IMAGE_COMPRESS_CONFIG, IS_IOS } from './constants';
 import { NexChat, Message } from '@nexchat/client-js';
 import { SendMessageProps } from 'client-js/src/types';
 import { fetchUrlsToPreview } from './utils';
@@ -156,9 +156,9 @@ const UserTextInput = ({
 
   return (
     <KeyboardAvoidingView
-      enabled={Platform.OS === 'ios'}
+      enabled={IS_IOS}
       behavior="padding"
-      keyboardVerticalOffset={112}
+      keyboardVerticalOffset={120}
     >
       <View style={styles.container}>
         {!_.isEmpty(localMediaList) && (
@@ -409,8 +409,8 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     marginHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 12 : 0,
-    paddingBottom: Platform.OS === 'ios' ? 14 : 2,
+    paddingTop: IS_IOS ? 12 : 0,
+    paddingBottom: IS_IOS ? 14 : 2,
     borderRadius: 12,
     paddingHorizontal: 12,
     fontSize: 16,
