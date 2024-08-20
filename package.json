@@ -6,9 +6,7 @@
   "private": true,
   "author": "ALGO TECHNOLOGIES PRIVATE LIMITED",
   "license": "Refer to LICENSE file",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "keywords": [
     "chat",
     "realtime",
@@ -16,12 +14,12 @@
     "websocket"
   ],
   "dependencies": {
+    "@nexchat/client-js": "https://github.com/nexchat-io/client-js#release/0.0.1",
     "lodash": "^4.17.21",
     "react-native-userpic": "^2.1.0",
     "react-native-hyperlink": "^0.0.22"
   },
   "peerDependencies": {
-    "@nexchat/client-js": "https://github.com/nexchat-io/client-js.git",
     "react": ">=18.0.0",
     "react-native": ">=0.70.0",
     "react-native-compressor": ">=1.8.25",
