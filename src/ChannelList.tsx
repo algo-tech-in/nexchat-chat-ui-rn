@@ -14,6 +14,7 @@ import {
 import { Userpic } from 'react-native-userpic';
 import { Channel, NexChat } from '@nexchat/client-js';
 import { colors } from './colors';
+import { socketConnectionCheck } from './utils';
 
 export const ChannelList = ({
   client,
@@ -33,6 +34,10 @@ export const ChannelList = ({
   const [channels, setChannels] = useState<Channel[]>([]);
   const [refreshList, setRefreshList] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    socketConnectionCheck(client);
+  }, []);
 
   useEffect(() => {
     getUserChannels({ pageNumber: 0 });

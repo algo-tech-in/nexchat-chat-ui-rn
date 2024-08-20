@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import ImageViewing from 'react-native-image-viewing';
 import { UserTextInput } from './UserTextInput';
-import { isSameDate } from './utils';
+import { isSameDate, socketConnectionCheck } from './utils';
 import { colors } from './colors';
 import { Userpic } from 'react-native-userpic';
 import { MenuView, NativeActionEvent } from '@react-native-menu/menu';
@@ -68,6 +68,10 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
   const [isBlockedByOtherUser, setIsBlockedByOtherUser] = useState(false);
 
   const displayDetails = channel?.getDisplayDetails?.();
+
+  useEffect(() => {
+    socketConnectionCheck(client);
+  }, []);
 
   useEffect(() => {
     client.getChannelByIdAsync(channelId).then((newChannel: Channel) => {

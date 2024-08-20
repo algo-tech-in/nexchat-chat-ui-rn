@@ -1,5 +1,16 @@
+import { AppState } from 'react-native';
 import { URL_PREVIEW_API } from './constants';
 import { LinkPreviewResponse } from './types';
+import { NexChat } from '@nexchat/client-js';
+import _ from 'lodash';
+
+export const socketConnectionCheck = _.once((client: NexChat) => {
+  AppState.addEventListener('change', (nextAppState) => {
+    if (nextAppState === 'active') {
+      client.socketConnectionCheck();
+    }
+  });
+});
 
 export const isSameDate = (dateOne: string, dateTwo: string) => {
   const date1 = new Date(dateOne);
