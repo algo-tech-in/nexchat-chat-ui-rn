@@ -14,7 +14,7 @@
     "websocket"
   ],
   "dependencies": {
-    "@nexchat/client-js": "https://github.com/nexchat-io/client-js#release/0.0.1",
+    "@nexchat/client-js": "https://github.com/nexchat-io/client-js#release/0.0.2",
     "lodash": "^4.17.21",
     "react-native-userpic": "^2.1.0",
     "react-native-hyperlink": "^0.0.22"
