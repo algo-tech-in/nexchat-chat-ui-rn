@@ -21,3 +21,10 @@ export interface LinkPreviewResponse {
   value?: FulfilledLinkPreview;
   reason?: RejectedLinkPreviewReason;
 }
+
+export type Attachment = {
+  fileId: string;
+  mimeType: string;
+  createdAt: string;
+  url: string;
+};

@@ -18,6 +18,7 @@ import {
   backgroundUpload,
   Image as ImageCompress,
   UploadType,
+  Video,
 } from 'react-native-compressor';
 import {
   Asset,
@@ -27,9 +28,10 @@ import {
   launchImageLibrary,
 } from 'react-native-image-picker';
 import { colors } from './colors';
+import { AssetPreview } from './components/AssetPreview';
 import { IMAGE_COMPRESS_CONFIG, IS_IOS } from './constants';
 import { FulfilledLinkPreview } from './types';
-import { fetchUrlsToPreview } from './utils';
+import { fetchUrlsToPreview, isMimeTypeVideo } from './utils';
 
 type UserReplyInputType = {
   client: NexChat;
@@ -54,6 +56,7 @@ const UserTextInput = ({
   const [showAddMedia, setShowAddMedia] = useState(false);
   const [localMediaList, setLocalMediaList] = useState<Asset[]>([]);
   const [isMessageBeingSent, setIsMessageBeingSent] = useState<boolean>(false);
+  const [isAssetProcessing, setIsAssetProcessing] = useState<boolean>(false);
 
   const onChangeText = (inputText: string) => {
     if (isLoading || isMessageBeingSent) {
@@ -95,24 +98,36 @@ const UserTextInput = ({
       });
   };
 
-  const openCamera = async (cameraType: CameraType) => {
-    const mediaResponse = await launchCamera({
-      mediaType: 'photo',
+  const openCamera = (cameraType: CameraType) => {
+    setShowAddMedia(false);
+    setIsAssetProcessing(true);
+    launchCamera({
+      mediaType: 'mixed',
       quality: 0.8,
       cameraType: cameraType,
-    });
-    setShowAddMedia(false);
-    updateSelectedMediaList(mediaResponse);
+      formatAsMp4: true,
+    })
+      .then((mediaResponse) => {
+        updateSelectedMediaList(mediaResponse);
+      })
+      .catch((error) => console.log(error))
+      .finally(() => setIsAssetProcessing(false));
   };
 
-  const openPhotoGallery = async () => {
-    const mediaResponse = await launchImageLibrary({
-      mediaType: 'photo',
+  const openGallery = () => {
+    setShowAddMedia(false);
+    setIsAssetProcessing(true);
+    launchImageLibrary({
+      mediaType: 'mixed',
       quality: 0.8,
       selectionLimit: 0,
-    });
-    setShowAddMedia(false);
-    updateSelectedMediaList(mediaResponse);
+      formatAsMp4: true,
+    })
+      .then((mediaResponse) => {
+        updateSelectedMediaList(mediaResponse);
+      })
+      .catch((error) => console.log(error))
+      .finally(() => setIsAssetProcessing(false));
   };
 
   const updateSelectedMediaList = (mediaResponse: ImagePickerResponse) => {
@@ -123,21 +138,35 @@ const UserTextInput = ({
     });
   };
 
+  console.log(localMediaList);
+
   const uploadSelectedMedia = async () => {
     const metadata = _.map(localMediaList, (mediaItem) => {
+      if (!mediaItem.uri || !mediaItem.type) {
+        return undefined;
+      }
       return {
-        mimeType: mediaItem?.type || 'UNK',
-        fileUri: mediaItem?.uri || 'UNK',
+        mimeType: mediaItem.type,
+        fileUri: mediaItem.uri,
       };
     });
+    const cleanedMetadata = _.compact(metadata);
 
-    const signedUrlList = await client.createUploadUrlsAsync({ metadata });
+    const signedUrlList = await client.createUploadUrlsAsync({
+      metadata: cleanedMetadata,
+    });
 
-    const uploadPromises = _.map(signedUrlList, async (signedUrl, index) => {
-      const compressedUri = await ImageCompress.compress(
-        signedUrl.uri,
-        IMAGE_COMPRESS_CONFIG
-      );
+    const uploadPromises = _.map(signedUrlList, async (signedUrl) => {
+      let compressedUri = signedUrl.uri;
+      if (isMimeTypeVideo(signedUrl.mimeType)) {
+        compressedUri = await Video.compress(signedUrl.uri);
+      } else {
+        compressedUri = await ImageCompress.compress(
+          signedUrl.uri,
+          IMAGE_COMPRESS_CONFIG
+        );
+      }
+
       await backgroundUpload(signedUrl.url, compressedUri, {
         uploadType: UploadType.BINARY_CONTENT, // TODO: Change to MULTIPART
         // fieldName: signedUrl.fileId, TODO: ADD WITH MULTIPART
@@ -175,9 +204,10 @@ const UserTextInput = ({
         {!_.isEmpty(localMediaList) && (
           <ScrollView
             showsHorizontalScrollIndicator={false}
-            contentInset={{ left: 0, right: 24 }}
+            showsVerticalScrollIndicator={false}
             horizontal={true}
-            contentContainerStyle={styles.mediaScrollView}
+            style={styles.mediaScrollView}
+            contentContainerStyle={styles.mediaScrollViewContentContainer}
           >
             {_.map(localMediaList, (mediaItem, index) => {
               return (
@@ -185,10 +215,15 @@ const UserTextInput = ({
                   key={`${mediaItem.uri}-${index}`}
                   style={styles.mediaItemContainer}
                 >
-                  <Image
-                    source={{ uri: mediaItem.uri }}
-                    style={styles.mediaItem}
-                  />
+                  {mediaItem.uri && mediaItem.type ? (
+                    <AssetPreview
+                      url={mediaItem.uri}
+                      mimeType={mediaItem.type}
+                      imageProps={{
+                        style: styles.assetPreviewImage,
+                      }}
+                    />
+                  ) : null}
                   <Pressable
                     onPress={() => {
                       const newLocalMediaList = [...localMediaList];
@@ -263,23 +298,25 @@ const UserTextInput = ({
               style={styles.addButton}
               onPress={setShowAddMedia.bind(this, !showAddMedia)}
             >
-              <Image
-                source={require('./assets/add.png')}
-                style={styles.send}
-                tintColor={colors.white}
-              />
+              {isAssetProcessing ? (
+                <ActivityIndicator size={'small'} color={colors.white} />
+              ) : (
+                <Image
+                  source={require('./assets/add.png')}
+                  style={styles.send}
+                  tintColor={colors.white}
+                />
+              )}
             </Pressable>
             {showAddMedia && (
               <View style={styles.addMediaContainer}>
-                <Pressable
-                  onPress={openPhotoGallery}
-                  style={styles.addMediaButton}
-                >
+                <Pressable onPress={openGallery} style={styles.addMediaButton}>
                   <Image
                     source={require('./assets/gallery.png')}
                     style={styles.send}
                     tintColor={colors.white}
                   />
+                  <Text style={styles.addMediaText}>Photos & Videos</Text>
                 </Pressable>
                 <Pressable
                   style={styles.addMediaButton}
@@ -290,6 +327,7 @@ const UserTextInput = ({
                     style={styles.send}
                     tintColor={colors.white}
                   />
+                  <Text style={styles.addMediaText}>Open Camera</Text>
                 </Pressable>
               </View>
             )}
@@ -357,25 +395,26 @@ const handleUrlPreviewWithDebounce = _.debounce(
 export default UserTextInput;
 
 const styles = StyleSheet.create({
+  assetPreviewImage: {
+    height: 120,
+    width: 120,
+    borderRadius: 8,
+  },
   container: {
     backgroundColor: 'transparent',
   },
   mediaScrollView: {
     backgroundColor: colors.paleGray,
-    width: '100%',
-    paddingVertical: 8,
-    paddingLeft: 24,
     borderTopRightRadius: 12,
     borderTopLeftRadius: 12,
+  },
+  mediaScrollViewContentContainer: {
+    paddingVertical: 8,
+    paddingLeft: 24,
   },
   mediaItemContainer: {
     marginRight: 16,
     marginVertical: 8,
-  },
-  mediaItem: {
-    height: 120,
-    aspectRatio: 1,
-    borderRadius: 8,
   },
   deleteButton: {
     position: 'absolute',
@@ -444,17 +483,19 @@ const styles = StyleSheet.create({
   addMediaContainer: {
     backgroundColor: colors.darkMint,
     position: 'absolute',
-    top: -112,
+    bottom: 46,
+    left: 0,
     paddingVertical: 12,
-    paddingHorizontal: 4,
-    borderRadius: 32,
-    height: 100,
+    paddingHorizontal: 10,
+    borderRadius: 12,
     justifyContent: 'space-between',
+    rowGap: 16,
   },
   addMediaButton: {
-    padding: 8,
-    borderRadius: 100,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  addMediaText: { color: colors.white, marginLeft: 8, fontWeight: '600' },
   sendButton: {
     backgroundColor: colors.darkMint,
     height: 40,

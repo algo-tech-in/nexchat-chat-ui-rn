@@ -1,4 +1,6 @@
 import { Channel, Message, NexChat } from '@nexchat/client-js';
+import { MenuView, NativeActionEvent } from '@react-native-menu/menu';
+import { SendMessageProps } from 'client-js/src/types';
 import _ from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -6,24 +8,21 @@ import {
   Alert,
   FlatList,
   Image,
-  ImageProps,
   Linking,
   Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import ImageViewing from 'react-native-image-viewing';
+import Hyperlink from 'react-native-hyperlink';
+import { Userpic } from 'react-native-userpic';
+import { colors } from './colors';
+import { AssetPreview } from './components/AssetPreview';
+import { AssetsCarousel } from './components/AssetsCarousel';
+import { Attachment, FulfilledLinkPreview } from './types';
 import { UserTextInput } from './UserTextInput';
 import { isSameDate, socketConnectionCheck } from './utils';
-import { colors } from './colors';
-import { Userpic } from 'react-native-userpic';
-import { MenuView, NativeActionEvent } from '@react-native-menu/menu';
-import { SendMessageProps } from 'client-js/src/types';
-import { FulfilledLinkPreview } from './types';
-import Hyperlink from 'react-native-hyperlink';
 
 type ChannelMessagesProps = {
   client: NexChat;
@@ -36,14 +35,14 @@ type ChannelMessagesProps = {
 };
 
 type MediaHandlerProps = {
-  imageList: Array<{ url: string }>;
+  imageList: Attachment[];
 };
 
 type MessageBubbleProps = {
   isSendedByUser: boolean;
   text: string;
   createdAt: string;
-  attachments: Array<{ url: string }>;
+  attachments: Attachment[];
   urls: FulfilledLinkPreview[];
 };
 
@@ -479,64 +478,73 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
 const MediaHandler: React.FC<MediaHandlerProps> = ({ imageList }) => {
   const imageCount = imageList.length;
-  const [openViewerWithIndex, setOpenViewerWithIndex] = useState<null | number>(
-    null
-  );
-  const imageUrlList = imageList.map((item) => ({ uri: item.url }));
+  const [openViewerWithIndex, setOpenViewerWithIndex] = useState<
+    number | undefined
+  >();
   return (
     <View style={{ marginBottom: 8 }}>
       {imageCount === 1 ? (
-        <ImageWithLoader
-          style={styles.image}
-          resizeMode="cover"
-          source={{
-            uri: imageList[0].url,
+        <AssetPreview
+          url={imageList[0].url}
+          mimeType={imageList[0].mimeType}
+          imageProps={{
+            style: styles.image,
+            resizeMode: 'cover',
           }}
-          onPress={setOpenViewerWithIndex.bind(this, 0)}
+          onPress={() => setOpenViewerWithIndex(0)}
         />
       ) : (
         <View style={styles.imageContainer}>
-          <ImageWithLoader
-            style={styles.imageWrapper}
-            resizeMode="cover"
-            source={{
-              uri: imageList[0].url,
+          <AssetPreview
+            url={imageList[0].url}
+            mimeType={imageList[0].mimeType}
+            imageProps={{
+              style: [styles.imageWrapper, { marginRight: 6 }],
+              resizeMode: 'cover',
             }}
-            onPress={setOpenViewerWithIndex.bind(this, 0)}
+            containerStyle={{ width: '49%' }}
+            onPress={() => setOpenViewerWithIndex(0)}
           />
-          <ImageWithLoader
-            style={styles.imageWrapper}
-            resizeMode="cover"
-            source={{
-              uri: imageList[1].url,
+          <AssetPreview
+            url={imageList[1].url}
+            mimeType={imageList[1].mimeType}
+            imageProps={{
+              style: styles.imageWrapper,
+              resizeMode: 'cover',
             }}
-            onPress={setOpenViewerWithIndex.bind(this, 1)}
+            containerStyle={{ width: '49%' }}
+            onPress={() => setOpenViewerWithIndex(1)}
           />
         </View>
       )}
       {imageCount > 2 && (
         <View style={styles.imageContainer}>
-          <ImageWithLoader
-            style={styles.imageWrapper}
-            resizeMode="cover"
-            source={{
-              uri: imageList[2].url,
+          <AssetPreview
+            url={imageList[2].url}
+            mimeType={imageList[2].mimeType}
+            imageProps={{
+              style: styles.imageWrapper,
+              resizeMode: 'cover',
             }}
-            onPress={setOpenViewerWithIndex.bind(this, 2)}
+            containerStyle={{ width: '49%' }}
+            onPress={() => setOpenViewerWithIndex(2)}
           />
           {imageCount >= 4 && (
             <View style={styles.imageWrapperOverflow}>
-              <ImageWithLoader
-                style={styles.imageOverflow}
-                resizeMode="cover"
-                source={{
-                  uri: imageList[3].url,
+              <AssetPreview
+                url={imageList[3].url}
+                mimeType={imageList[3].mimeType}
+                imageProps={{
+                  style: styles.imageOverflow,
+                  resizeMode: 'cover',
                 }}
+                containerStyle={{ width: '100%' }}
+                onPress={() => setOpenViewerWithIndex(3)}
               />
               {imageCount > 4 && (
                 <Pressable
                   style={styles.imageCountOverlay}
-                  onPress={setOpenViewerWithIndex.bind(this, 3)}
+                  onPress={() => setOpenViewerWithIndex(3)}
                 >
                   <Text style={styles.countText}>{`+${imageCount - 3}`}</Text>
                 </Pressable>
@@ -545,31 +553,15 @@ const MediaHandler: React.FC<MediaHandlerProps> = ({ imageList }) => {
           )}
         </View>
       )}
-
-      {!_.isNull(openViewerWithIndex) && (
-        <ImageViewing
-          images={imageUrlList}
-          imageIndex={openViewerWithIndex}
-          visible={true}
-          onRequestClose={setOpenViewerWithIndex.bind(this, null)}
+      {_.isNil(openViewerWithIndex) ? null : (
+        <AssetsCarousel
+          assets={imageList}
+          visible={_.isNumber(openViewerWithIndex)}
+          onClose={() => setOpenViewerWithIndex(undefined)}
+          initialIndex={openViewerWithIndex}
         />
       )}
     </View>
-  );
-};
-
-const ImageWithLoader = (props: ImageProps & { onPress?: () => void }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  return (
-    <TouchableWithoutFeedback
-      onPress={_.isFunction(props.onPress) ? props.onPress : undefined}
-    >
-      <Image
-        onLoadEnd={setIsLoading.bind(this, false)}
-        {...props}
-        style={[props.style, isLoading && styles.imageLoading]}
-      />
-    </TouchableWithoutFeedback>
   );
 };
 
@@ -645,7 +637,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   imageWrapper: {
-    width: '49%',
+    width: '100%',
     aspectRatio: 1,
     borderRadius: 12,
   },

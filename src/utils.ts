@@ -1,8 +1,8 @@
-import { AppState } from 'react-native';
-import { URL_PREVIEW_API } from './constants';
-import { LinkPreviewResponse } from './types';
 import { NexChat } from '@nexchat/client-js';
 import _ from 'lodash';
+import { AppState } from 'react-native';
+import { MIME_TYPES, URL_PREVIEW_API } from './constants';
+import { LinkPreviewResponse } from './types';
 
 export const socketConnectionCheck = _.once((client: NexChat) => {
   AppState.addEventListener('change', (nextAppState) => {
@@ -37,4 +37,8 @@ export const fetchUrlsToPreview = (
       reject([]);
     }
   });
+};
+
+export const isMimeTypeVideo = (mimeType: string) => {
+  return [MIME_TYPES.MP4].includes(mimeType);
 };
