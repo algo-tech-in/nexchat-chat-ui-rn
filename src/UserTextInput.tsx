@@ -138,8 +138,6 @@ const UserTextInput = ({
     });
   };
 
-  console.log(localMediaList);
-
   const uploadSelectedMedia = async () => {
     const metadata = _.map(localMediaList, (mediaItem) => {
       if (!mediaItem.uri || !mediaItem.type) {
