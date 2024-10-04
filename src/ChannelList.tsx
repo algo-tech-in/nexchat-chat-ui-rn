@@ -1,9 +1,10 @@
 import _ from 'lodash';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleProp,
   StyleSheet,
   Text,
@@ -29,11 +30,12 @@ export const ChannelList = ({
 }) => {
   const pageNumberRef = useRef(0);
   const isLastPageRef = useRef(false);
-  const isFetchingNextChannelsRef = useRef(false);
 
+  const [isFetchingNextChannels, setIsFetchingNextChannels] = useState(false);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [refreshList, setRefreshList] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     socketConnectionCheck(client);
@@ -66,10 +68,8 @@ export const ChannelList = ({
   }, []);
 
   const getUserChannels = ({ pageNumber }: { pageNumber: number }) => {
-    if (isFetchingNextChannelsRef.current) {
-      return;
-    }
-    isFetchingNextChannelsRef.current = true;
+    if (isFetchingNextChannels) return;
+    setIsFetchingNextChannels(true);
 
     const pageSize = 20;
     client
@@ -78,15 +78,23 @@ export const ChannelList = ({
         offset: pageNumber * pageSize,
       })
       .then((data) => {
-        setChannels((prevChannels) => [...prevChannels, ...data.channels]);
+        if (pageNumber === 0) {
+          setChannels(data.channels);
+          pageNumberRef.current = 0;
+        } else {
+          setChannels((prevChannels) => [...prevChannels, ...data.channels]);
+        }
         isLastPageRef.current = data.isLastPage;
       })
       .catch((error) => {
         console.log(error);
       })
       .finally(() => {
-        isFetchingNextChannelsRef.current = false;
+        setIsFetchingNextChannels(false);
         setIsLoading(false);
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 250);
       });
   };
 
@@ -96,6 +104,12 @@ export const ChannelList = ({
       getUserChannels({ pageNumber: pageNumberRef.current });
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    getUserChannels({ pageNumber: 0 });
+    socketConnectionCheck(client);
+  }, []);
 
   if (isLoading) {
     return (
@@ -109,6 +123,13 @@ export const ChannelList = ({
 
   return (
     <FlatList
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.darkMint}
+        />
+      }
       data={channels}
       showsHorizontalScrollIndicator={false}
       showsVerticalScrollIndicator={false}
@@ -127,13 +148,19 @@ export const ChannelList = ({
       extraData={refreshList}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
-      ListEmptyComponent={() => {
-        return (
-          <View style={styles.emptyList}>
-            <Text>No chats yet</Text>
-          </View>
-        );
-      }}
+      ListEmptyComponent={
+        <View style={styles.emptyList}>
+          <Text>No chats yet</Text>
+        </View>
+      }
+      ListFooterComponent={
+        <ActivityIndicator
+          size={'small'}
+          animating={isFetchingNextChannels}
+          color={colors.darkMint}
+          style={{ paddingVertical: 20 }}
+        />
+      }
     />
   );
 };

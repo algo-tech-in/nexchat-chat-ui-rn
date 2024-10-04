@@ -216,7 +216,11 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
               text: 'Cancel',
               style: 'cancel',
             },
-            { text: 'Block', onPress: onBlockPress, style: 'destructive' },
+            {
+              text: 'Block & Report',
+              onPress: onBlockPress,
+              style: 'destructive',
+            },
           ]
         );
         break;
@@ -254,10 +258,14 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
 
   return (
     <View style={styles.container}>
-      {showHeader ? (
+      {showHeader && (
         <View style={styles.headerContainer}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity onPress={onBackPress} activeOpacity={0.8}>
+            <TouchableOpacity
+              onPress={onBackPress}
+              activeOpacity={0.8}
+              hitSlop={8}
+            >
               <Image
                 source={require('./assets/back.png')}
                 style={styles.back}
@@ -296,7 +304,7 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
                       }
                     : {
                         id: 'block',
-                        title: 'Block',
+                        title: 'Block & Report',
                       },
                 ]}
               >
@@ -309,28 +317,8 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
             </View>
           )}
         </View>
-      ) : null}
+      )}
       <View style={{ flex: 1 }}>
-        {isLoading ? (
-          <View
-            style={{
-              position: 'absolute',
-              flex: 1,
-              height: '100%',
-              width: '100%',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 100,
-              backgroundColor: 'rgba(0,0,0,0.4)',
-            }}
-          >
-            <ActivityIndicator
-              size="large"
-              color={colors.darkMint}
-              style={styles.activityIndicator}
-            />
-          </View>
-        ) : null}
         <FlatList
           contentContainerStyle={styles.flatListContainer}
           data={messages}
@@ -388,6 +376,15 @@ const ChannelMessages: React.FC<ChannelMessagesProps> = ({
           </View>
         ) : (
           <UserTextInput client={client} onPressSend={sendMessageAsync} />
+        )}
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size="large"
+              color={colors.darkMint}
+              style={styles.activityIndicator}
+            />
+          </View>
         )}
       </View>
     </View>
@@ -689,5 +686,14 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontWeight: '600',
     fontSize: 16,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    flex: 1,
+    height: '105%',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
 });
