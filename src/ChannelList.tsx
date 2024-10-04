@@ -150,8 +150,7 @@ export const ChannelList = ({
       onEndReachedThreshold={0.5}
       ListEmptyComponent={
         <View style={styles.emptyList}>
-          <Text style={styles.emptyMessageTitle}>Waiting for messages</Text>
-          <Text>Start a conversation and see your chats here!</Text>
+          <Text>No chats yet</Text>
         </View>
       }
       ListFooterComponent={
@@ -262,9 +261,7 @@ const ChannelItem = ({
 
 const styles = StyleSheet.create({
   activityIndicator: { marginTop: 20 },
-  contentContainer: {
-    flexGrow: 1,
-  },
+  contentContainer: {},
   unreadCountText: {
     color: colors.white,
     fontSize: 12,
@@ -314,13 +311,5 @@ const styles = StyleSheet.create({
   emptyList: {
     marginTop: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    height: '80%',
-  },
-  emptyMessageTitle: {
-    fontWeight: '600',
-    fontSize: 18,
-    marginBottom: 4,
-    color: colors.darkMint,
   },
 });
