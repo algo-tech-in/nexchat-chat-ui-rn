@@ -1,9 +1,8 @@
 {
   "name": "@nexchat/ui-react-native",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "React Native package to integrate NexChat into your app.",
   "main": "index.ts",
-  "private": true,
   "author": "ALGO TECHNOLOGIES PRIVATE LIMITED",
   "license": "Refer to LICENSE file",
   "scripts": {},
